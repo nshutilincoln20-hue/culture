@@ -26,11 +26,13 @@
       <button class="icon-btn" aria-label="Search">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
-      <!-- Cart icon: opens the real Shopify cart popup (wired in script.js).
-           Shopify's own floating cart bubble (bottom-right) still works too,
-           as a safety net in case the custom wiring below ever needs adjusting. -->
+      <button class="icon-btn" id="wishlistBtn" aria-label="Open wishlist">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+        <span class="cart-badge" id="wishlistBadge" hidden>0</span>
+      </button>
       <button class="icon-btn cart-btn" id="cartBtn" aria-label="Open cart">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="cart-badge" id="cartBadge" hidden>0</span>
       </button>
       <button class="icon-btn" id="menuBtn" aria-label="Open menu">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
@@ -41,8 +43,9 @@
 
 <!-- mobile menu panel -->
 <nav class="mobile-menu" id="mobileMenu">
-  <a href="#collectionBanner" id="menuAll">Shop</a>
-  <a href="#newsletter" id="menuNewsletter">Newsletter</a>
+  <a href="#" id="menuAll">All Products</a>
+  <a href="#" id="menuNew">New Arrivals</a>
+  <a href="#" id="menuBest">Best Sellers</a>
 </nav>
 
 <main>
@@ -69,11 +72,7 @@
 
     <h2 class="section-title">New Releases</h2>
 
-    <!-- ===== SHOPIFY BUY BUTTON COLLECTION ===== -->
-    <!-- Real products, real cart, real Shopify-hosted checkout. -->
-    <div class="shopify-collection-wrap">
-      <div id="collection-component-1784594283802"></div>
-    </div>
+    <div class="product-grid" id="productGrid"></div>
 
     <!-- ===== INSTAGRAM CTA ===== -->
     <div class="instagram-cta">
@@ -99,6 +98,58 @@
 
   </section>
 
+  <!-- ===== PRODUCT DETAIL PAGE ===== -->
+  <section id="page-product" hidden>
+    <button class="back-link" id="backToHome">&larr; Back</button>
+    <div class="product-detail" id="productDetail"></div>
+  </section>
+
+  <!-- ===== CHECKOUT PAGE ===== -->
+  <section id="page-checkout" hidden>
+    <button class="back-link" id="backFromCheckout">&larr; Back to shop</button>
+    <h1 class="checkout-title">Checkout</h1>
+
+    <h3 class="form-label">Contact</h3>
+    <div class="form-row">
+      <input type="email" placeholder="Email address" required>
+    </div>
+
+    <h3 class="form-label">Shipping Address</h3>
+    <div class="form-row">
+      <input type="text" placeholder="Full name" required>
+    </div>
+    <div class="form-row">
+      <input type="text" placeholder="Address" required>
+    </div>
+    <div class="form-row form-row-split">
+      <input type="text" placeholder="City" required>
+      <input type="text" placeholder="State" required>
+    </div>
+    <div class="form-row">
+      <input type="text" placeholder="ZIP code" required>
+    </div>
+
+    <h3 class="form-label">Payment</h3>
+    <p class="demo-note">This is a demo store — no real payment will be processed.</p>
+    <div class="form-row">
+      <input type="text" placeholder="Card number">
+    </div>
+
+    <button class="place-order-btn" id="placeOrderBtn">PLACE ORDER</button>
+  </section>
+
+  <!-- ===== ORDER CONFIRMATION PAGE ===== -->
+  <section id="page-confirmation" hidden>
+    <div class="confirmation">
+      <div class="confirmation-check">✓</div>
+      <h1>Order Placed</h1>
+      <p class="confirmation-sub">This is a demo store — no real order was placed and no payment was processed.</p>
+      <p class="confirmation-order-number" id="confirmOrderNumber"></p>
+      <div class="confirmation-summary" id="confirmSummary"></div>
+      <button class="place-order-btn" id="continueShoppingBtn">CONTINUE SHOPPING</button>
+    </div>
+  </section>
+
 </main>
 
 <!-- ===== FOOTER ===== -->
@@ -112,7 +163,9 @@
     <div class="footer-columns">
       <div class="footer-col">
         <h4>SHOP</h4>
-        <a href="#collectionBanner">All Products</a>
+        <a href="#">All Products</a>
+        <a href="#">New Arrivals</a>
+        <a href="#">Best Sellers</a>
       </div>
       <div class="footer-col">
         <h4>SUPPORT</h4>
@@ -137,7 +190,25 @@
   </div>
 </footer>
 
-<!-- ===== IMAGE LIGHTBOX (still used for the hero graphic) ===== -->
+<!-- ===== CART DRAWER ===== -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h3 id="cartHeading">CART (0)</h3>
+    <button id="cartClose" aria-label="Close cart">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer">
+    <div class="cart-subtotal">
+      <span>SUBTOTAL</span>
+      <span id="cartSubtotal">$0.00</span>
+    </div>
+    <p class="cart-note">Shipping &amp; taxes calculated at checkout.</p>
+    <button class="cart-checkout-btn" id="cartCheckoutBtn" disabled>CHECKOUT</button>
+  </div>
+</aside>
+
+<!-- ===== IMAGE LIGHTBOX ===== -->
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" id="lightboxClose" aria-label="Close image">✕</button>
   <img id="lightboxImg" src="" alt="">
@@ -147,250 +218,5 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="script.js"></script>
-
-<!-- ===== SHOPIFY BUY BUTTON ===== -->
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'qab28h-nj.myshopify.com',
-      storefrontAccessToken: '10471149f7831b219cda02b2dc193b5d',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('collection', {
-        id: '650126557476',
-        node: document.getElementById('collection-component-1784594283802'),
-        moneyFormat: '%7B%7Bamount_no_decimals%7D%7D%20RF',
-        options: {
-          "product": {
-            "styles": {
-              "product": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "@media (min-width: 601px)": {
-                  "max-width": "calc(33.33333% - 24px)",
-                  "margin-left": "24px",
-                  "margin-bottom": "40px",
-                  "width": "calc(33.33333% - 24px)"
-                },
-                "img": {
-                  "height": "calc(100% - 15px)",
-                  "position": "absolute",
-                  "left": "0",
-                  "right": "0",
-                  "top": "0"
-                },
-                "imgWrapper": {
-                  "padding-top": "calc(75% + 15px)",
-                  "position": "relative",
-                  "height": "0",
-                  "background-color": "#0a0a0a"
-                }
-              },
-              "title": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "font-weight": "bold",
-                "font-size": "13px",
-                "letter-spacing": "0.02em",
-                "text-transform": "uppercase",
-                "color": "#0a0a0a"
-              },
-              "price": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "font-size": "13px",
-                "color": "#767676",
-                "font-weight": "normal"
-              },
-              "compareAt": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "color": "#767676"
-              },
-              "button": {
-                ":hover": { "background-color": "#111111" },
-                "background-color": "#0a0a0a",
-                ":focus": { "background-color": "#111111" },
-                "border-radius": "0px",
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "font-weight": "700",
-                "font-size": "13px",
-                "letter-spacing": "0.05em",
-                "text-transform": "uppercase",
-                "padding-top": "15px",
-                "padding-bottom": "15px"
-              }
-            },
-            "contents": {
-              "img": true,
-              "title": true,
-              "price": true,
-              "button": true
-            },
-            "text": {
-              "button": "Add to cart"
-            }
-          },
-          "productSet": {
-            "styles": {
-              "products": {
-                "@media (min-width: 601px)": {
-                  "margin-left": "-24px"
-                }
-              }
-            }
-          },
-          "modalProduct": {
-            "contents": {
-              "img": false,
-              "imgWithCarousel": true,
-              "button": false,
-              "buttonWithQuantity": true
-            },
-            "styles": {
-              "product": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "@media (min-width: 601px)": {
-                  "max-width": "100%",
-                  "margin-left": "0px",
-                  "margin-bottom": "0px"
-                }
-              },
-              "title": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "font-weight": "800",
-                "text-transform": "uppercase",
-                "color": "#0a0a0a"
-              },
-              "price": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "color": "#767676"
-              },
-              "description": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "color": "#0a0a0a"
-              },
-              "button": {
-                ":hover": { "background-color": "#111111" },
-                "background-color": "#0a0a0a",
-                ":focus": { "background-color": "#111111" },
-                "border-radius": "0px",
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "font-weight": "700",
-                "letter-spacing": "0.05em",
-                "text-transform": "uppercase"
-              }
-            },
-            "text": {
-              "button": "Add to cart"
-            }
-          },
-          "option": {
-            "styles": {
-              "select": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "border-radius": "0px",
-                "border-color": "#e5e5e5"
-              },
-              "label": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "color": "#767676",
-                "font-size": "12px",
-                "letter-spacing": "0.06em",
-                "text-transform": "uppercase"
-              }
-            }
-          },
-          "cart": {
-            "styles": {
-              "button": {
-                ":hover": { "background-color": "#111111" },
-                "background-color": "#0a0a0a",
-                ":focus": { "background-color": "#111111" },
-                "border-radius": "0px",
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "font-weight": "700",
-                "letter-spacing": "0.05em",
-                "text-transform": "uppercase"
-              },
-              "title": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "color": "#0a0a0a"
-              },
-              "header": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "color": "#0a0a0a"
-              },
-              "lineItems": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
-              },
-              "subtotalText": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "color": "#0a0a0a"
-              },
-              "subtotal": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "color": "#0a0a0a"
-              },
-              "notice": {
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                "color": "#767676"
-              },
-              "footer": {
-                "background-color": "#ffffff"
-              }
-            },
-            "text": {
-              "total": "Subtotal",
-              "notice": "Shipping & taxes calculated at checkout.",
-              "button": "Checkout"
-            },
-            "popup": false
-          },
-          "toggle": {
-            "styles": {
-              "toggle": {
-                "background-color": "#0a0a0a",
-                ":hover": { "background-color": "#111111" },
-                ":focus": { "background-color": "#111111" },
-                "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
-              }
-            }
-          }
-        },
-      });
-
-      // Wire up the site's own nav cart icon to open the same Shopify cart
-      // that the default floating toggle bubble controls.
-      var navCartBtn = document.getElementById('cartBtn');
-      if (navCartBtn) {
-        navCartBtn.addEventListener('click', function (e) {
-          e.preventDefault();
-          if (ui.components.cart && ui.components.cart[0]) {
-            ui.components.cart[0].open();
-          }
-        });
-      }
-    });
-  }
-})();
-/*]]>*/
-</script>
-
 </body>
 </html>
