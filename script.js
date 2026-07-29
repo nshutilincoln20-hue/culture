@@ -437,10 +437,12 @@ cartCheckoutBtn.addEventListener("click", () => {
 });
 
 // ---------- checkout ----------
-document.getElementById("placeOrderBtn").addEventListener("click", e => {
+document.getElementById("placeOrderBtn").addEventListener("click", async e => {
   e.preventDefault();
+
   const inputs = pageCheckout.querySelectorAll("input[required]");
   let allFilled = true;
+
   inputs.forEach(input => {
     if (!input.value.trim()) {
       allFilled = false;
@@ -455,36 +457,61 @@ document.getElementById("placeOrderBtn").addEventListener("click", e => {
     return;
   }
 
-  renderConfirmation();
-  cart = [];
-  renderCart();
-  showPage(pageConfirmation);
-});
+  if (cart.length === 0) {
+    showToast("Your cart is empty", "error");
+    return;
+  }
 
-function renderConfirmation() {
-  const orderNumber = "CUL-" + Math.floor(100000 + Math.random() * 900000);
-  document.getElementById("confirmOrderNumber").textContent = `Order #${orderNumber}`;
+  const emailInput = pageCheckout.querySelector('input[type="email"]');
+  const email = emailInput.value.trim();
 
-  const summaryEl = document.getElementById("confirmSummary");
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  summaryEl.innerHTML = cart.map(item => `
-    <div class="confirmation-item">
-      <span>${item.name} (${item.size}) × ${item.qty}</span>
-      <span>$${(item.price * item.qty).toFixed(2)}</span>
-    </div>
-  `).join("") + `
-    <div class="confirmation-total">
-      <span>Total</span>
-      <span>$${total.toFixed(2)}</span>
-    </div>
-  `;
-}
+  const items = cart.map(item => ({
+    name: `${item.name} - Size ${item.size}`,
+    price: item.price,
+    quantity: item.qty
+  }));
 
-document.getElementById("continueShoppingBtn").addEventListener("click", () => {
-  showPage(pageHome);
-});
+  const button = document.getElementById("placeOrderBtn");
 
-// ---------- newsletter ----------
+  button.disabled = true;
+  button.textContent = "CONNECTING TO PAYMENT...";
+
+  try {
+    const response = await fetch(
+      "https://culture-mu.vercel.app/api/create-checkout",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          items
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.payment_link) {
+      console.error("Paypack error:", data);
+      throw new Error("Unable to create payment checkout");
+    }
+
+    window.location.href = data.payment_link;
+
+  } catch (error) {
+    console.error("Checkout error:", error);
+
+    showToast(
+      "We couldn't start the payment. Please try again.",
+      "error"
+    );
+
+    button.disabled = false;
+    button.textContent = "PLACE ORDER";
+  }
+});// ---------- newsletter ----------
 document.getElementById("newsletterForm").addEventListener("submit", e => {
   e.preventDefault();
   const input = e.target.querySelector("input");
