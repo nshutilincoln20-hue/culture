@@ -462,7 +462,10 @@ document.getElementById("placeOrderBtn").addEventListener("click", async e => {
     return;
   }
 
-  const emailInput = pageCheckout.querySelector('input[type="email"]');
+  const emailInput = pageCheckout.querySelector(
+    'input[type="email"]'
+  );
+
   const email = emailInput.value.trim();
 
   const items = cart.map(item => ({
@@ -511,7 +514,7 @@ document.getElementById("placeOrderBtn").addEventListener("click", async e => {
     button.disabled = false;
     button.textContent = "PLACE ORDER";
   }
-});// ---------- newsletter ----------
+});});// ---------- newsletter ----------
 document.getElementById("newsletterForm").addEventListener("submit", e => {
   e.preventDefault();
   const input = e.target.querySelector("input");
