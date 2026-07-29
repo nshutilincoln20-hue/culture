@@ -4,7 +4,9 @@ export default async function handler(request) {
       JSON.stringify({ error: "Method not allowed" }),
       {
         status: 405,
-        headers: { "Content-Type": "application/json" }
+        headers: {
+          "Content-Type": "application/json"
+        }
       }
     );
   }
@@ -14,10 +16,14 @@ export default async function handler(request) {
 
     if (!email || !Array.isArray(items) || items.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Missing email or cart items" }),
+        JSON.stringify({
+          error: "Missing email or cart items"
+        }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" }
+          headers: {
+            "Content-Type": "application/json"
+          }
         }
       );
     }
@@ -28,7 +34,29 @@ export default async function handler(request) {
       quantity: Number(item.quantity)
     }));
 
-    const response = await fetch(
+    for (const item of cleanItems) {
+      if (
+        !item.name ||
+        !Number.isFinite(item.price) ||
+        item.price <= 0 ||
+        !Number.isInteger(item.quantity) ||
+        item.quantity <= 0
+      ) {
+        return new Response(
+          JSON.stringify({
+            error: "Invalid cart item"
+          }),
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      }
+    }
+
+    const paypackResponse = await fetch(
       "https://checkout.paypack.rw/api/checkouts/initiate",
       {
         method: "POST",
@@ -38,22 +66,27 @@ export default async function handler(request) {
         },
         body: JSON.stringify({
           items: cleanItems,
-          app_id: "aafbde76-8b5d-11f1-bf97-deadd43720af",
+          app_id: process.env.PAYPACK_APP_ID,
           email: email
         })
       }
     );
 
-    const data = await response.json();
+    const data = await paypackResponse.json();
 
-    if (!response.ok) {
+    if (!paypackResponse.ok) {
       console.error("Paypack error:", data);
 
       return new Response(
-        JSON.stringify({ error: "Paypack checkout failed", details: data }),
+        JSON.stringify({
+          error: "Paypack checkout failed",
+          details: data
+        }),
         {
-          status: response.status,
-          headers: { "Content-Type": "application/json" }
+          status: paypackResponse.status,
+          headers: {
+            "Content-Type": "application/json"
+          }
         }
       );
     }
@@ -65,18 +98,24 @@ export default async function handler(request) {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" }
+        headers: {
+          "Content-Type": "application/json"
+        }
       }
     );
 
   } catch (error) {
-    console.error(error);
+    console.error("Server error:", error);
 
     return new Response(
-      JSON.stringify({ error: "Server error" }),
+      JSON.stringify({
+        error: "Something went wrong"
+      }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" }
+        headers: {
+          "Content-Type": "application/json"
+        }
       }
     );
   }
