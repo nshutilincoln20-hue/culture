@@ -6,56 +6,56 @@ const PRODUCTS = [
   {
     id: "street-love-god",
     name: "STREET LOVE GOD TEE",
-    price: 30,
+    price: 15000,
     image: "assets/tee-make-street-love-god.jpg",
     description: "Black heavyweight cotton tee. Front features 'MAKE THE STREET LOVE GOD' in a bold circular badge. Back features 'MY IDENTITY IN CHRIST' in red vertical type."
   },
   {
     id: "goat",
     name: "GOAT TEE",
-    price: 30,
+    price: 15000,
     image: "assets/tee-goat.jpg",
     description: "Black heavyweight cotton tee. Front features the CULTURE oval logo in white. Back features 'GOAT' with 'GOD OVER ALL THINGS' and a cross with candle in tan."
   },
   {
     id: "way-truth-life",
     name: "WAY TRUTH LIFE TEE",
-    price: 30,
+    price: 15000,
     image: "assets/tee-way-truth-life.jpg",
     description: "White heavyweight cotton tee. Front features the CULTURE wordmark in periwinkle blue. Back features 'WAY TRUTH LIFE' stacked with 'JESUS' at center in navy."
   },
   {
     id: "make-heaven-crowded",
     name: "MAKE HEAVEN CROWDED TEE",
-    price: 30,
+    price: 15000,
     image: "assets/tee-make-heaven-crowded.jpg",
     description: "White heavyweight cotton tee. Front features the CULTURE oval logo in blue and pink. Back features 'MAKE HEAVEN CROWDED' with a circle of figures holding hands in royal blue."
   },
   {
     id: "call-on-jesus",
     name: "CALL ON JESUS TEE",
-    price: 30,
+    price: 15000,
     image: "assets/tee-call-on-jesus.jpg",
     description: "White heavyweight cotton tee. Front features 'CALL ON JESUS' with stars and a flip phone graphic. Back features the CULTURE oval logo in pink and blue."
   },
   {
     id: "blessed-by-lord",
     name: "BLESSED BY THE LORD TEE",
-    price: 30,
+    price: 15000,
     image: "assets/tee-blessed-by-lord.jpg",
     description: "Black heavyweight cotton tee. Front features the CULTURE oval logo in white. Back features a cross above 'BLESSED BY THE LORD'."
   },
   {
     id: "god-bigger-fear",
     name: "GOD IS BIGGER THAN YOUR FEAR TEE",
-    price: 30,
+    price: 15000,
     image: "assets/tee-god-bigger-fear.jpg",
     description: "White heavyweight cotton tee. Front features the CULTURE oval logo in black. Back features 'GOD IS BIGGER THAN YOUR FEAR' with a star, in pink and black script."
   },
   {
     id: "trust-in-lord",
     name: "TRUST IN THE LORD TEE",
-    price: 30,
+    price: 15000,
     image: "assets/tee-trust-in-lord.jpg",
     description: "Black heavyweight cotton tee. Front features a hand-drawn cross. Back features the CULTURE oval logo above 'TRUST IN THE LORD' in bold distressed type."
   }
@@ -499,7 +499,7 @@ function renderProduct(product) {
           </svg>
 
           <span>
-            30-Day Returns
+            15000-Day Returns
           </span>
 
         </div>
