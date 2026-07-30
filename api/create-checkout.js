@@ -1,57 +1,28 @@
-const allowedOrigin = "https://buy-culture.com";
+export default async function handler(req, res) {
+  // CORS
+  res.setHeader("Access-Control-Allow-Origin", "https://buy-culture.com");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json"
-  };
-}
-
-export default async function handler(request) {
-
-  // Handle browser CORS preflight
-  if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders()
-    });
+  // Handle browser preflight
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
   }
 
   // Only allow POST
-  if (request.method !== "POST") {
-    return new Response(
-      JSON.stringify({
-        error: "Method not allowed"
-      }),
-      {
-        status: 405,
-        headers: corsHeaders()
-      }
-    );
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      error: "Method not allowed"
+    });
   }
 
   try {
+    const { email, items } = req.body;
 
-    const body = await request.json();
-
-    const { email, items } = body;
-
-    if (
-      !email ||
-      !Array.isArray(items) ||
-      items.length === 0
-    ) {
-      return new Response(
-        JSON.stringify({
-          error: "Missing email or cart items"
-        }),
-        {
-          status: 400,
-          headers: corsHeaders()
-        }
-      );
+    if (!email || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        error: "Missing email or cart items"
+      });
     }
 
     const cleanItems = items.map(item => ({
@@ -60,16 +31,20 @@ export default async function handler(request) {
       quantity: Number(item.quantity)
     }));
 
+    console.log("Sending to Paypack:", {
+      app_id: process.env.PAYPACK_APP_ID,
+      email,
+      items: cleanItems
+    });
+
     const paypackResponse = await fetch(
       "https://checkout.paypack.rw/api/checkouts/initiate",
       {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json"
+          Accept: "application/json"
         },
-
         body: JSON.stringify({
           app_id: process.env.PAYPACK_APP_ID,
           email,
@@ -80,64 +55,33 @@ export default async function handler(request) {
 
     const data = await paypackResponse.json();
 
-    console.log("Paypack response:", {
-      status: paypackResponse.status,
-      data
-    });
+    console.log("Paypack Status:", paypackResponse.status);
+    console.log("Paypack Response:", data);
 
     if (!paypackResponse.ok) {
-      return new Response(
-        JSON.stringify({
-          error: "Paypack checkout failed",
-          details: data
-        }),
-        {
-          status: paypackResponse.status,
-          headers: corsHeaders()
-        }
-      );
+      return res.status(paypackResponse.status).json({
+        error: "Paypack checkout failed",
+        details: data
+      });
     }
 
     if (!data.payment_link) {
-      return new Response(
-        JSON.stringify({
-          error: "Paypack did not return a payment link",
-          details: data
-        }),
-        {
-          status: 502,
-          headers: corsHeaders()
-        }
-      );
+      return res.status(500).json({
+        error: "Paypack did not return a payment link",
+        details: data
+      });
     }
 
-    return new Response(
-      JSON.stringify({
-        payment_link: data.payment_link,
-        session_id: data.session_id || null
-      }),
-      {
-        status: 200,
-        headers: corsHeaders()
-      }
-    );
+    return res.status(200).json({
+      payment_link: data.payment_link,
+      session_id: data.session_id || null
+    });
 
-  } catch (error) {
+  } catch (err) {
+    console.error("SERVER ERROR:", err);
 
-    console.error(
-      "Checkout server error:",
-      error
-    );
-
-    return new Response(
-      JSON.stringify({
-        error: "Unable to create checkout",
-        details: error.message
-      }),
-      {
-        status: 500,
-        headers: corsHeaders()
-      }
-    );
+    return res.status(500).json({
+      error: err.message
+    });
   }
 }
