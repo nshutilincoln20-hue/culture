@@ -1,4 +1,25 @@
+const allowedOrigin = "https://buy-culture.com";
+
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json"
+  };
+}
+
 export default async function handler(request) {
+
+  // Handle browser CORS preflight
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders()
+    });
+  }
+
+  // Only allow POST
   if (request.method !== "POST") {
     return new Response(
       JSON.stringify({
@@ -6,14 +27,13 @@ export default async function handler(request) {
       }),
       {
         status: 405,
-        headers: {
-          "Content-Type": "application/json"
-        }
+        headers: corsHeaders()
       }
     );
   }
 
   try {
+
     const body = await request.json();
 
     const { email, items } = body;
@@ -29,9 +49,7 @@ export default async function handler(request) {
         }),
         {
           status: 400,
-          headers: {
-            "Content-Type": "application/json"
-          }
+          headers: corsHeaders()
         }
       );
     }
@@ -60,16 +78,14 @@ export default async function handler(request) {
       }
     );
 
-    const data =
-      await paypackResponse.json();
+    const data = await paypackResponse.json();
+
+    console.log("Paypack response:", {
+      status: paypackResponse.status,
+      data
+    });
 
     if (!paypackResponse.ok) {
-
-      console.error(
-        "Paypack error:",
-        data
-      );
-
       return new Response(
         JSON.stringify({
           error: "Paypack checkout failed",
@@ -77,51 +93,32 @@ export default async function handler(request) {
         }),
         {
           status: paypackResponse.status,
-          headers: {
-            "Content-Type":
-              "application/json"
-          }
+          headers: corsHeaders()
         }
       );
     }
 
     if (!data.payment_link) {
-
-      console.error(
-        "Paypack returned no payment link:",
-        data
-      );
-
       return new Response(
         JSON.stringify({
-          error:
-            "Paypack did not return a payment link",
+          error: "Paypack did not return a payment link",
           details: data
         }),
         {
           status: 502,
-          headers: {
-            "Content-Type":
-              "application/json"
-          }
+          headers: corsHeaders()
         }
       );
     }
 
     return new Response(
       JSON.stringify({
-        payment_link:
-          data.payment_link,
-
-        session_id:
-          data.session_id || null
+        payment_link: data.payment_link,
+        session_id: data.session_id || null
       }),
       {
         status: 200,
-        headers: {
-          "Content-Type":
-            "application/json"
-        }
+        headers: corsHeaders()
       }
     );
 
@@ -134,15 +131,12 @@ export default async function handler(request) {
 
     return new Response(
       JSON.stringify({
-        error:
-          "Unable to create checkout"
+        error: "Unable to create checkout",
+        details: error.message
       }),
       {
         status: 500,
-        headers: {
-          "Content-Type":
-            "application/json"
-        }
+        headers: corsHeaders()
       }
     );
   }
