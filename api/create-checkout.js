@@ -37,21 +37,28 @@ export default async function handler(req, res) {
       items: cleanItems
     });
 
+    // Abort request after 10 seconds
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
     const paypackResponse = await fetch(
-      "https://checkout.paypack.rw/api/checkouts/initiate",
+      "https://paypack-checkout.fly.dev/api/checkouts/initiate",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json"
+          "Accept": "application/json"
         },
         body: JSON.stringify({
           app_id: process.env.PAYPACK_APP_ID,
           email,
           items: cleanItems
-        })
+        }),
+        signal: controller.signal
       }
     );
+
+    clearTimeout(timeout);
 
     const data = await paypackResponse.json();
 
@@ -81,7 +88,9 @@ export default async function handler(req, res) {
     console.error("SERVER ERROR:", err);
 
     return res.status(500).json({
-      error: err.message
+      error: err.name === "AbortError"
+        ? "Request to Paypack timed out after 10 seconds."
+        : err.message
     });
   }
 }
