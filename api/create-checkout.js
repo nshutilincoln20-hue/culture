@@ -4,12 +4,10 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Handle browser preflight
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  // Only allow POST
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Method not allowed"
@@ -31,15 +29,18 @@ export default async function handler(req, res) {
       quantity: Number(item.quantity)
     }));
 
-    console.log("Sending to Paypack:", {
+    console.log("========== PAYPACK REQUEST ==========");
+    console.log({
       app_id: process.env.PAYPACK_APP_ID,
       email,
       items: cleanItems
     });
 
-    // Abort request after 10 seconds
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 10000);
 
     const paypackResponse = await fetch(
       "https://paypack-checkout.fly.dev/api/checkouts/initiate",
@@ -60,10 +61,25 @@ export default async function handler(req, res) {
 
     clearTimeout(timeout);
 
-    const data = await paypackResponse.json();
+    console.log("Paypack HTTP Status:", paypackResponse.status);
 
-    console.log("Paypack Status:", paypackResponse.status);
-    console.log("Paypack Response:", data);
+    const rawResponse = await paypackResponse.text();
+
+    console.log("========== RAW RESPONSE ==========");
+    console.log(rawResponse);
+
+    let data = {};
+
+    try {
+      data = JSON.parse(rawResponse);
+    } catch {
+      data = {
+        raw: rawResponse
+      };
+    }
+
+    console.log("========== PARSED RESPONSE ==========");
+    console.log(data);
 
     if (!paypackResponse.ok) {
       return res.status(paypackResponse.status).json({
@@ -74,7 +90,7 @@ export default async function handler(req, res) {
 
     if (!data.payment_link) {
       return res.status(500).json({
-        error: "Paypack did not return a payment link",
+        error: "No payment_link returned",
         details: data
       });
     }
@@ -85,12 +101,18 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error("SERVER ERROR:", err);
+
+    console.error("========== SERVER ERROR ==========");
+    console.error(err);
+    console.error("Message:", err.message);
+    console.error("Stack:", err.stack);
 
     return res.status(500).json({
-      error: err.name === "AbortError"
-        ? "Request to Paypack timed out after 10 seconds."
-        : err.message
+      error: err.message,
+      stack:
+        process.env.NODE_ENV === "development"
+          ? err.stack
+          : undefined
     });
   }
 }
