@@ -513,8 +513,10 @@ document.getElementById("placeOrderBtn").addEventListener("click", async e => {
 
     button.disabled = false;
     button.textContent = "PLACE ORDER";
-  }
-});});// ---------- newsletter ----------
+   }
+});
+
+// ---------- newsletter ----------
 document.getElementById("newsletterForm").addEventListener("submit", e => {
   e.preventDefault();
   const input = e.target.querySelector("input");
