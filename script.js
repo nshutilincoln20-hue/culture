@@ -1,5 +1,5 @@
 // ============================================================
-// __CULTURE.__  —  storefront logic (custom demo shop, no external Shopify script)
+// __CULTURE.__  —  storefront logic
 // ============================================================
 
 const PRODUCTS = [
@@ -64,22 +64,30 @@ const PRODUCTS = [
 const SIZES = ["XS", "S", "M", "L", "XL"];
 
 // ---------- toast notifications ----------
+
 const toastContainer = document.getElementById("toastContainer");
 
 function showToast(message, type = "default") {
   const toast = document.createElement("div");
   toast.className = `toast${type === "error" ? " toast-error" : ""}`;
   toast.textContent = message;
+
   toastContainer.appendChild(toast);
+
   setTimeout(() => {
     toast.classList.add("toast-out");
-    toast.addEventListener("animationend", () => toast.remove());
+
+    toast.addEventListener("animationend", () => {
+      toast.remove();
+    });
   }, 2600);
 }
 
 // ---------- image load handling ----------
+
 function wireImageLoad(imgEl) {
   const markLoaded = () => imgEl.classList.add("loaded");
+
   if (imgEl.complete && imgEl.naturalWidth > 0) {
     markLoaded();
   } else {
@@ -87,11 +95,13 @@ function wireImageLoad(imgEl) {
     imgEl.addEventListener("error", markLoaded);
   }
 }
+
 function wireAllImages(container) {
   container.querySelectorAll("img").forEach(wireImageLoad);
 }
 
 // ---------- scroll reveal ----------
+
 const revealObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -99,7 +109,9 @@ const revealObserver = new IntersectionObserver(entries => {
       revealObserver.unobserve(entry.target);
     }
   });
-}, { threshold: 0.15 });
+}, {
+  threshold: 0.15
+});
 
 function wireReveal(container) {
   container.querySelectorAll(".product-card").forEach((card, i) => {
@@ -109,15 +121,26 @@ function wireReveal(container) {
 }
 
 // ---------- page elements ----------
+
 const pageHome = document.getElementById("page-home");
 const pageProduct = document.getElementById("page-product");
 const pageCheckout = document.getElementById("page-checkout");
 const pageConfirmation = document.getElementById("page-confirmation");
-const ALL_PAGES = [pageHome, pageProduct, pageCheckout, pageConfirmation];
+
+const ALL_PAGES = [
+  pageHome,
+  pageProduct,
+  pageCheckout,
+  pageConfirmation
+];
 
 function showPage(page) {
-  ALL_PAGES.forEach(p => (p.hidden = true));
+  ALL_PAGES.forEach(p => {
+    p.hidden = true;
+  });
+
   page.hidden = false;
+
   window.scrollTo(0, 0);
 }
 
@@ -126,35 +149,64 @@ function lockScroll(lock) {
 }
 
 // ---------- wishlist ----------
+
 let wishlist = new Set();
+
 const wishlistBadge = document.getElementById("wishlistBadge");
 
 function toggleWishlist(id, product, heartBtn) {
   if (wishlist.has(id)) {
     wishlist.delete(id);
     heartBtn.classList.remove("active");
+
     showToast(`Removed ${product.name} from wishlist`);
   } else {
     wishlist.add(id);
     heartBtn.classList.add("active");
+
     showToast(`${product.name} added to wishlist`);
   }
+
   wishlistBadge.hidden = wishlist.size === 0;
   wishlistBadge.textContent = wishlist.size;
 }
 
 // ---------- product grid ----------
+
 const grid = document.getElementById("productGrid");
-const heartIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
+
+const heartIcon = `
+<svg
+  viewBox="0 0 24 24"
+  width="15"
+  height="15"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+>
+  <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/>
+</svg>
+`;
 
 grid.innerHTML = PRODUCTS.map(p => `
   <div class="product-card" data-id="${p.id}">
     <div class="product-card-img-wrap">
-      <button class="wishlist-heart" data-wishlist="${p.id}" aria-label="Add to wishlist">${heartIcon}</button>
+      <button
+        class="wishlist-heart"
+        data-wishlist="${p.id}"
+        aria-label="Add to wishlist"
+      >
+        ${heartIcon}
+      </button>
+
       <img src="${p.image}" alt="${p.name}">
     </div>
+
     <h3>${p.name}</h3>
-    <span class="price">$${p.price.toFixed(2)} USD</span>
+
+    <span class="price">
+      $${p.price.toFixed(2)} USD
+    </span>
   </div>
 `).join("");
 
@@ -163,382 +215,983 @@ wireReveal(grid);
 
 grid.addEventListener("click", e => {
   const heartBtn = e.target.closest("[data-wishlist]");
+
   if (heartBtn) {
     e.stopPropagation();
-    const product = PRODUCTS.find(p => p.id === heartBtn.dataset.wishlist);
-    toggleWishlist(heartBtn.dataset.wishlist, product, heartBtn);
+
+    const product = PRODUCTS.find(
+      p => p.id === heartBtn.dataset.wishlist
+    );
+
+    toggleWishlist(
+      heartBtn.dataset.wishlist,
+      product,
+      heartBtn
+    );
+
     return;
   }
+
   const card = e.target.closest(".product-card");
-  if (card) openProduct(card.dataset.id);
+
+  if (card) {
+    openProduct(card.dataset.id);
+  }
 });
 
 wireAllImages(document.querySelector(".campaign"));
 
-// ---------- campaign hero: interactive tilt on desktop ----------
-const campaignWrap = document.getElementById("campaignImgWrap");
-const campaignImg = campaignWrap.querySelector("img");
-const supportsHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+// ---------- campaign hero ----------
+
+const campaignWrap =
+  document.getElementById("campaignImgWrap");
+
+const campaignImg =
+  campaignWrap.querySelector("img");
+
+const supportsHover =
+  window.matchMedia(
+    "(hover: hover) and (pointer: fine)"
+  ).matches;
 
 if (supportsHover) {
+
   campaignWrap.addEventListener("mousemove", e => {
-    const rect = campaignWrap.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+    const rect =
+      campaignWrap.getBoundingClientRect();
+
+    const x =
+      (e.clientX - rect.left) /
+      rect.width - 0.5;
+
+    const y =
+      (e.clientY - rect.top) /
+      rect.height - 0.5;
+
     const rotateY = x * 14;
     const rotateX = y * -14;
+
     campaignWrap.classList.add("tilting");
-    campaignImg.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.04)`;
+
+    campaignImg.style.transform =
+      `rotateX(${rotateX}deg)
+       rotateY(${rotateY}deg)
+       scale(1.04)`;
   });
+
   campaignWrap.addEventListener("mouseleave", () => {
+
     campaignWrap.classList.remove("tilting");
+
     campaignImg.style.transform = "";
   });
 }
-campaignWrap.addEventListener("click", () => openLightbox(campaignImg.src, campaignImg.alt));
+
+campaignWrap.addEventListener(
+  "click",
+  () => openLightbox(
+    campaignImg.src,
+    campaignImg.alt
+  )
+);
 
 // ---------- lightbox ----------
-const lightbox = document.getElementById("lightbox");
-const lightboxImg = document.getElementById("lightboxImg");
-const lightboxClose = document.getElementById("lightboxClose");
+
+const lightbox =
+  document.getElementById("lightbox");
+
+const lightboxImg =
+  document.getElementById("lightboxImg");
+
+const lightboxClose =
+  document.getElementById("lightboxClose");
 
 function openLightbox(src, alt) {
+
   lightboxImg.src = src;
   lightboxImg.alt = alt;
+
   lightbox.classList.add("open");
+
   lockScroll(true);
 }
+
 function closeLightbox() {
+
   lightbox.classList.remove("open");
+
   lockScroll(false);
 }
-lightboxClose.addEventListener("click", closeLightbox);
-lightbox.addEventListener("click", e => { if (e.target === lightbox) closeLightbox(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeLightbox(); });
+
+lightboxClose.addEventListener(
+  "click",
+  closeLightbox
+);
+
+lightbox.addEventListener("click", e => {
+
+  if (e.target === lightbox) {
+    closeLightbox();
+  }
+});
+
+document.addEventListener("keydown", e => {
+
+  if (e.key === "Escape") {
+    closeLightbox();
+  }
+});
 
 // ---------- product detail ----------
+
 let selectedSize = "M";
-const detailEl = document.getElementById("productDetail");
+
+const detailEl =
+  document.getElementById("productDetail");
 
 function openProduct(id) {
-  const product = PRODUCTS.find(p => p.id === id);
+
+  const product =
+    PRODUCTS.find(p => p.id === id);
+
   if (!product) return;
+
   selectedSize = "M";
+
   renderProduct(product);
+
   showPage(pageProduct);
 }
 
 function renderProduct(product) {
-  const isWishlisted = wishlist.has(product.id);
+
+  const isWishlisted =
+    wishlist.has(product.id);
+
   detailEl.innerHTML = `
     <div class="detail-media">
-      <div class="product-detail-img-wrap" id="detailImgWrap">
-        <button class="wishlist-heart ${isWishlisted ? "active" : ""}" data-wishlist="${product.id}" aria-label="Add to wishlist">${heartIcon}</button>
-        <img src="${product.image}" alt="${product.name}">
-        <span class="zoom-hint">Click to zoom</span>
+
+      <div
+        class="product-detail-img-wrap"
+        id="detailImgWrap"
+      >
+
+        <button
+          class="wishlist-heart ${isWishlisted ? "active" : ""}"
+          data-wishlist="${product.id}"
+          aria-label="Add to wishlist"
+        >
+          ${heartIcon}
+        </button>
+
+        <img
+          src="${product.image}"
+          alt="${product.name}"
+        >
+
+        <span class="zoom-hint">
+          Click to zoom
+        </span>
+
       </div>
+
     </div>
+
     <div class="detail-info">
+
       <h1>${product.name}</h1>
-      <p class="price">$${product.price.toFixed(2)} USD</p>
+
+      <p class="price">
+        $${product.price.toFixed(2)} USD
+      </p>
+
       <hr>
-      <p class="description">${product.description}</p>
-      <p class="fabric-note">100% Heavyweight Cotton, 240 GSM</p>
-      <p class="size-label">Select Size</p>
-      <div class="size-options" id="sizeOptions">
-        ${SIZES.map(s => `<button class="size-btn ${s === selectedSize ? "selected" : ""}" data-size="${s}">${s}</button>`).join("")}
+
+      <p class="description">
+        ${product.description}
+      </p>
+
+      <p class="fabric-note">
+        100% Heavyweight Cotton, 240 GSM
+      </p>
+
+      <p class="size-label">
+        Select Size
+      </p>
+
+      <div
+        class="size-options"
+        id="sizeOptions"
+      >
+        ${SIZES.map(s => `
+          <button
+            class="size-btn ${s === selectedSize ? "selected" : ""}"
+            data-size="${s}"
+          >
+            ${s}
+          </button>
+        `).join("")}
       </div>
-      <button class="add-cart-btn" id="addCartBtn">ADD TO CART — $${product.price.toFixed(2)}</button>
+
+      <button
+        class="add-cart-btn"
+        id="addCartBtn"
+      >
+        ADD TO CART —
+        $${product.price.toFixed(2)}
+      </button>
+
       <div class="trust-badges">
+
         <div class="trust-badge">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-          <span>Secure Checkout</span>
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <rect x="5" y="11" width="14" height="9" rx="1.5"/>
+            <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+          </svg>
+
+          <span>
+            Secure Checkout
+          </span>
         </div>
+
         <div class="trust-badge">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7.5" cy="18" r="1.5"/><circle cx="17.5" cy="18" r="1.5"/></svg>
-          <span>Free Shipping $100+</span>
+
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path d="M3 7h11v9H3z"/>
+            <path d="M14 10h4l3 3v3h-7z"/>
+            <circle cx="7.5" cy="18" r="1.5"/>
+            <circle cx="17.5" cy="18" r="1.5"/>
+          </svg>
+
+          <span>
+            Free Shipping $100+
+          </span>
+
         </div>
+
         <div class="trust-badge">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4v6h6"/><path d="M4.5 15a8 8 0 1 0 2-9.5L4 10"/></svg>
-          <span>30-Day Returns</span>
+
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path d="M4 4v6h6"/>
+            <path d="M4.5 15a8 8 0 1 0 2-9.5L4 10"/>
+          </svg>
+
+          <span>
+            30-Day Returns
+          </span>
+
         </div>
+
       </div>
+
     </div>
   `;
 
   wireAllImages(detailEl);
 
-  document.getElementById("detailImgWrap").addEventListener("click", e => {
-    if (e.target.closest("[data-wishlist]")) return;
-    openLightbox(product.image, product.name);
-  });
+  document
+    .getElementById("detailImgWrap")
+    .addEventListener("click", e => {
 
-  detailEl.querySelector("[data-wishlist]").addEventListener("click", e => {
-    e.stopPropagation();
-    toggleWishlist(product.id, product, e.currentTarget);
-  });
+      if (e.target.closest("[data-wishlist]")) {
+        return;
+      }
 
-  document.getElementById("sizeOptions").addEventListener("click", e => {
-    const btn = e.target.closest(".size-btn");
-    if (!btn) return;
-    selectedSize = btn.dataset.size;
-    detailEl.querySelectorAll(".size-btn").forEach(b => b.classList.toggle("selected", b === btn));
-  });
+      openLightbox(
+        product.image,
+        product.name
+      );
+    });
 
-  const addBtn = document.getElementById("addCartBtn");
+  detailEl
+    .querySelector("[data-wishlist]")
+    .addEventListener("click", e => {
+
+      e.stopPropagation();
+
+      toggleWishlist(
+        product.id,
+        product,
+        e.currentTarget
+      );
+    });
+
+  document
+    .getElementById("sizeOptions")
+    .addEventListener("click", e => {
+
+      const btn =
+        e.target.closest(".size-btn");
+
+      if (!btn) return;
+
+      selectedSize =
+        btn.dataset.size;
+
+      detailEl
+        .querySelectorAll(".size-btn")
+        .forEach(b => {
+
+          b.classList.toggle(
+            "selected",
+            b === btn
+          );
+        });
+    });
+
+  const addBtn =
+    document.getElementById("addCartBtn");
+
   addBtn.addEventListener("click", () => {
-    addToCart(product, selectedSize);
-    addBtn.textContent = "ADDED ✓";
+
+    addToCart(
+      product,
+      selectedSize
+    );
+
+    addBtn.textContent =
+      "ADDED ✓";
+
     addBtn.classList.add("added");
+
     setTimeout(() => {
-      addBtn.textContent = `ADD TO CART — $${product.price.toFixed(2)}`;
+
+      addBtn.textContent =
+        `ADD TO CART — $${product.price.toFixed(2)}`;
+
       addBtn.classList.remove("added");
+
     }, 900);
-    showToast(`${product.name} (${selectedSize}) added to cart`);
+
+    showToast(
+      `${product.name} (${selectedSize}) added to cart`
+    );
+
     openCart();
   });
 }
 
-document.getElementById("backToHome").addEventListener("click", () => showPage(pageHome));
-document.getElementById("backFromCheckout").addEventListener("click", () => showPage(pageHome));
-document.getElementById("navHome").addEventListener("click", e => { e.preventDefault(); showPage(pageHome); });
-document.getElementById("shopNowBtn").addEventListener("click", () => {
-  showPage(pageHome);
-  document.getElementById("collectionBanner").scrollIntoView({ behavior: "smooth" });
-});
-document.getElementById("wishlistBtn").addEventListener("click", () => {
-  if (wishlist.size === 0) {
-    showToast("Your wishlist is empty");
-  } else {
-    showToast(`${wishlist.size} item${wishlist.size > 1 ? "s" : ""} in your wishlist`);
-  }
-});
+// ---------- navigation ----------
+
+document
+  .getElementById("backToHome")
+  .addEventListener(
+    "click",
+    () => showPage(pageHome)
+  );
+
+document
+  .getElementById("backFromCheckout")
+  .addEventListener(
+    "click",
+    () => showPage(pageHome)
+  );
+
+document
+  .getElementById("navHome")
+  .addEventListener("click", e => {
+
+    e.preventDefault();
+
+    showPage(pageHome);
+  });
+
+document
+  .getElementById("shopNowBtn")
+  .addEventListener("click", () => {
+
+    showPage(pageHome);
+
+    document
+      .getElementById("collectionBanner")
+      .scrollIntoView({
+        behavior: "smooth"
+      });
+  });
+
+document
+  .getElementById("wishlistBtn")
+  .addEventListener("click", () => {
+
+    if (wishlist.size === 0) {
+
+      showToast(
+        "Your wishlist is empty"
+      );
+
+    } else {
+
+      showToast(
+        `${wishlist.size} item${wishlist.size > 1 ? "s" : ""} in your wishlist`
+      );
+    }
+  });
 
 // ---------- mobile menu ----------
-const mobileMenu = document.getElementById("mobileMenu");
-document.getElementById("menuBtn").addEventListener("click", () => {
-  mobileMenu.classList.toggle("open");
-});
-[["menuAll", pageHome], ["menuNew", pageHome], ["menuBest", pageHome]].forEach(([id, page]) => {
-  document.getElementById(id).addEventListener("click", e => {
-    e.preventDefault();
-    mobileMenu.classList.remove("open");
-    showPage(page);
+
+const mobileMenu =
+  document.getElementById("mobileMenu");
+
+document
+  .getElementById("menuBtn")
+  .addEventListener("click", () => {
+
+    mobileMenu.classList.toggle("open");
   });
+
+[
+  ["menuAll", pageHome],
+  ["menuNew", pageHome],
+  ["menuBest", pageHome]
+].forEach(([id, page]) => {
+
+  document
+    .getElementById(id)
+    .addEventListener("click", e => {
+
+      e.preventDefault();
+
+      mobileMenu.classList.remove("open");
+
+      showPage(page);
+    });
 });
 
 // ---------- cart state ----------
+
 let cart = [];
 
-const cartDrawer = document.getElementById("cartDrawer");
-const cartOverlay = document.getElementById("cartOverlay");
-const cartItemsEl = document.getElementById("cartItems");
-const cartHeading = document.getElementById("cartHeading");
-const cartSubtotalEl = document.getElementById("cartSubtotal");
-const cartBadge = document.getElementById("cartBadge");
-const cartCheckoutBtn = document.getElementById("cartCheckoutBtn");
+const cartDrawer =
+  document.getElementById("cartDrawer");
+
+const cartOverlay =
+  document.getElementById("cartOverlay");
+
+const cartItemsEl =
+  document.getElementById("cartItems");
+
+const cartHeading =
+  document.getElementById("cartHeading");
+
+const cartSubtotalEl =
+  document.getElementById("cartSubtotal");
+
+const cartBadge =
+  document.getElementById("cartBadge");
+
+const cartCheckoutBtn =
+  document.getElementById("cartCheckoutBtn");
 
 function openCart() {
+
   cartDrawer.classList.add("open");
+
   cartOverlay.classList.add("open");
+
   lockScroll(true);
 }
+
 function closeCart() {
+
   cartDrawer.classList.remove("open");
+
   cartOverlay.classList.remove("open");
+
   lockScroll(false);
 }
 
 function addToCart(product, size) {
-  const existing = cart.find(item => item.id === product.id && item.size === size);
+
+  const existing =
+    cart.find(
+      item =>
+        item.id === product.id &&
+        item.size === size
+    );
+
   if (existing) {
+
     existing.qty += 1;
+
   } else {
-    cart.push({ id: product.id, name: product.name, price: product.price, image: product.image, size, qty: 1 });
+
+    cart.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      size,
+      qty: 1
+    });
   }
+
   renderCart();
 }
 
 function changeQty(index, delta) {
+
   cart[index].qty += delta;
-  if (cart[index].qty <= 0) cart.splice(index, 1);
+
+  if (cart[index].qty <= 0) {
+    cart.splice(index, 1);
+  }
+
   renderCart();
 }
 
 function removeItem(index) {
-  const removed = cart[index];
+
+  const removed =
+    cart[index];
+
   cart.splice(index, 1);
+
   renderCart();
-  if (removed) showToast(`Removed ${removed.name}`);
+
+  if (removed) {
+    showToast(
+      `Removed ${removed.name}`
+    );
+  }
 }
 
 function renderCart() {
-  const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-  cartHeading.textContent = `CART (${totalQty})`;
+
+  const totalQty =
+    cart.reduce(
+      (sum, item) =>
+        sum + item.qty,
+      0
+    );
+
+  cartHeading.textContent =
+    `CART (${totalQty})`;
 
   if (totalQty > 0) {
+
     cartBadge.hidden = false;
-    cartBadge.textContent = totalQty;
+
+    cartBadge.textContent =
+      totalQty;
+
     cartBadge.classList.remove("pulse");
+
     void cartBadge.offsetWidth;
+
     cartBadge.classList.add("pulse");
+
   } else {
+
     cartBadge.hidden = true;
   }
 
-  cartCheckoutBtn.disabled = cart.length === 0;
+  cartCheckoutBtn.disabled =
+    cart.length === 0;
 
   if (cart.length === 0) {
-    cartItemsEl.innerHTML = `<p class="cart-empty">Your cart is empty.</p>`;
+
+    cartItemsEl.innerHTML =
+      `<p class="cart-empty">Your cart is empty.</p>`;
+
   } else {
-    cartItemsEl.innerHTML = cart.map((item, i) => `
-      <div class="cart-item">
-        <div class="thumb-wrap"><img src="${item.image}" alt="${item.name}"></div>
-        <div class="cart-item-info">
-          <h4>${item.name}</h4>
-          <p class="cart-item-size">Size: ${item.size}</p>
-          <div class="qty-stepper">
-            <button data-qty-down="${i}">−</button>
-            <span>${item.qty}</span>
-            <button data-qty-up="${i}">+</button>
+
+    cartItemsEl.innerHTML =
+      cart.map((item, i) => `
+        <div class="cart-item">
+
+          <div class="thumb-wrap">
+            <img
+              src="${item.image}"
+              alt="${item.name}"
+            >
           </div>
+
+          <div class="cart-item-info">
+
+            <h4>
+              ${item.name}
+            </h4>
+
+            <p class="cart-item-size">
+              Size: ${item.size}
+            </p>
+
+            <div class="qty-stepper">
+
+              <button
+                data-qty-down="${i}"
+              >
+                −
+              </button>
+
+              <span>
+                ${item.qty}
+              </span>
+
+              <button
+                data-qty-up="${i}"
+              >
+                +
+              </button>
+
+            </div>
+
+          </div>
+
+          <div>
+
+            <p class="cart-item-price">
+              $${(
+                item.price * item.qty
+              ).toFixed(2)}
+            </p>
+
+            <button
+              class="cart-item-remove"
+              data-remove="${i}"
+            >
+              REMOVE
+            </button>
+
+          </div>
+
         </div>
-        <div>
-          <p class="cart-item-price">$${(item.price * item.qty).toFixed(2)}</p>
-          <button class="cart-item-remove" data-remove="${i}">REMOVE</button>
-        </div>
-      </div>
-    `).join("");
+      `).join("");
+
     wireAllImages(cartItemsEl);
   }
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  cartSubtotalEl.textContent = `$${total.toFixed(2)}`;
+  const total =
+    cart.reduce(
+      (sum, item) =>
+        sum + item.price * item.qty,
+      0
+    );
+
+  cartSubtotalEl.textContent =
+    `$${total.toFixed(2)}`;
 }
 
-cartItemsEl.addEventListener("click", e => {
-  const upBtn = e.target.closest("[data-qty-up]");
-  const downBtn = e.target.closest("[data-qty-down]");
-  const removeBtn = e.target.closest("[data-remove]");
-  if (upBtn) changeQty(Number(upBtn.dataset.qtyUp), 1);
-  if (downBtn) changeQty(Number(downBtn.dataset.qtyDown), -1);
-  if (removeBtn) removeItem(Number(removeBtn.dataset.remove));
-});
+cartItemsEl.addEventListener(
+  "click",
+  e => {
 
-document.getElementById("cartBtn").addEventListener("click", openCart);
-document.getElementById("cartClose").addEventListener("click", closeCart);
-cartOverlay.addEventListener("click", closeCart);
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeCart(); });
+    const upBtn =
+      e.target.closest("[data-qty-up]");
 
-cartCheckoutBtn.addEventListener("click", () => {
-  if (cart.length === 0) return;
-  closeCart();
-  showPage(pageCheckout);
-});
+    const downBtn =
+      e.target.closest("[data-qty-down]");
 
-// ---------- checkout ----------
-document.getElementById("placeOrderBtn").addEventListener("click", async e => {
-  e.preventDefault();
+    const removeBtn =
+      e.target.closest("[data-remove]");
 
-  const inputs = pageCheckout.querySelectorAll("input[required]");
-  let allFilled = true;
-
-  inputs.forEach(input => {
-    if (!input.value.trim()) {
-      allFilled = false;
-      input.style.borderColor = "#c62828";
-    } else {
-      input.style.borderColor = "";
+    if (upBtn) {
+      changeQty(
+        Number(upBtn.dataset.qtyUp),
+        1
+      );
     }
-  });
 
-  if (!allFilled) {
-    showToast("Please fill in all required fields", "error");
-    return;
+    if (downBtn) {
+      changeQty(
+        Number(downBtn.dataset.qtyDown),
+        -1
+      );
+    }
+
+    if (removeBtn) {
+      removeItem(
+        Number(removeBtn.dataset.remove)
+      );
+    }
   }
+);
 
-  if (cart.length === 0) {
-    showToast("Your cart is empty", "error");
-    return;
-  }
-
-  const emailInput = pageCheckout.querySelector(
-    'input[type="email"]'
+document
+  .getElementById("cartBtn")
+  .addEventListener(
+    "click",
+    openCart
   );
 
-  const email = emailInput.value.trim();
+document
+  .getElementById("cartClose")
+  .addEventListener(
+    "click",
+    closeCart
+  );
 
-  const items = cart.map(item => ({
-    name: `${item.name} - Size ${item.size}`,
-    price: item.price,
-    quantity: item.qty
-  }));
+cartOverlay.addEventListener(
+  "click",
+  closeCart
+);
 
-  const button = document.getElementById("placeOrderBtn");
+document.addEventListener(
+  "keydown",
+  e => {
 
-  button.disabled = true;
-  button.textContent = "CONNECTING TO PAYMENT...";
+    if (e.key === "Escape") {
+      closeCart();
+    }
+  }
+);
 
-  try {
-    const response = await fetch(
-      "https://culture-mu.vercel.app/api/create-checkout",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          email,
-          items
-        })
-      }
-    );
+cartCheckoutBtn.addEventListener(
+  "click",
+  () => {
 
-    const data = await response.json();
-
-    if (!response.ok || !data.payment_link) {
-      console.error("Paypack error:", data);
-      throw new Error("Unable to create payment checkout");
+    if (cart.length === 0) {
+      return;
     }
 
-    window.location.href = data.payment_link;
+    closeCart();
 
-  } catch (error) {
-    console.error("Checkout error:", error);
+    showPage(pageCheckout);
+  }
+);
 
-    showToast(
-      "We couldn't start the payment. Please try again.",
-      "error"
-    );
+// ---------- PAYPACK CHECKOUT ----------
 
-    button.disabled = false;
-    button.textContent = "PLACE ORDER";
-   }
-});
+document
+  .getElementById("placeOrderBtn")
+  .addEventListener(
+    "click",
+    async e => {
+
+      e.preventDefault();
+
+      const inputs =
+        pageCheckout.querySelectorAll(
+          "input[required]"
+        );
+
+      let allFilled = true;
+
+      inputs.forEach(input => {
+
+        if (!input.value.trim()) {
+
+          allFilled = false;
+
+          input.style.borderColor =
+            "#c62828";
+
+        } else {
+
+          input.style.borderColor = "";
+        }
+      });
+
+      if (!allFilled) {
+
+        showToast(
+          "Please fill in all required fields",
+          "error"
+        );
+
+        return;
+      }
+
+      if (cart.length === 0) {
+
+        showToast(
+          "Your cart is empty",
+          "error"
+        );
+
+        return;
+      }
+
+      const emailInput =
+        pageCheckout.querySelector(
+          'input[type="email"]'
+        );
+
+      if (!emailInput) {
+
+        showToast(
+          "Email field is missing",
+          "error"
+        );
+
+        return;
+      }
+
+      const email =
+        emailInput.value.trim();
+
+      const items =
+        cart.map(item => ({
+          name:
+            `${item.name} - Size ${item.size}`,
+          price: item.price,
+          quantity: item.qty
+        }));
+
+      const button =
+        document.getElementById(
+          "placeOrderBtn"
+        );
+
+      button.disabled = true;
+
+      button.textContent =
+        "CONNECTING TO PAYMENT...";
+
+      try {
+
+        const response =
+          await fetch(
+            "https://culture-mu.vercel.app/api/create-checkout",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body: JSON.stringify({
+                email,
+                items
+              })
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (
+          !response.ok ||
+          !data.payment_link
+        ) {
+
+          console.error(
+            "Paypack error:",
+            data
+          );
+
+          throw new Error(
+            "Unable to create payment checkout"
+          );
+        }
+
+        window.location.href =
+          data.payment_link;
+
+      } catch (error) {
+
+        console.error(
+          "Checkout error:",
+          error
+        );
+
+        showToast(
+          "We couldn't start the payment. Please try again.",
+          "error"
+        );
+
+        button.disabled = false;
+
+        button.textContent =
+          "PLACE ORDER";
+      }
+    }
+  );
 
 // ---------- newsletter ----------
-document.getElementById("newsletterForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const input = e.target.querySelector("input");
-  showToast(`Subscribed! We'll email ${input.value}`);
-  input.value = "";
-});
+
+document
+  .getElementById("newsletterForm")
+  .addEventListener(
+    "submit",
+    e => {
+
+      e.preventDefault();
+
+      const input =
+        e.target.querySelector("input");
+
+      showToast(
+        `Subscribed! We'll email ${input.value}`
+      );
+
+      input.value = "";
+    }
+  );
 
 // ---------- nav scroll shadow ----------
-const navWrap = document.getElementById("navWrap");
-window.addEventListener("scroll", () => {
-  navWrap.classList.toggle("scrolled", window.scrollY > 8);
-}, { passive: true });
+
+const navWrap =
+  document.getElementById("navWrap");
+
+window.addEventListener(
+  "scroll",
+  () => {
+
+    navWrap.classList.toggle(
+      "scrolled",
+      window.scrollY > 8
+    );
+  },
+  {
+    passive: true
+  }
+);
 
 // ---------- page loader ----------
-const pageLoader = document.getElementById("pageLoader");
+
+const pageLoader =
+  document.getElementById("pageLoader");
+
 lockScroll(true);
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    pageLoader.classList.add("hide");
-    lockScroll(false);
-    setTimeout(() => pageLoader.remove(), 1200);
-  }, 1400);
-});
+
+window.addEventListener(
+  "load",
+  () => {
+
+    setTimeout(
+      () => {
+
+        pageLoader.classList.add(
+          "hide"
+        );
+
+        lockScroll(false);
+
+        setTimeout(
+          () => pageLoader.remove(),
+          1200
+        );
+
+      },
+      1400
+    );
+  }
+);
+
+// ---------- initial render ----------
 
 renderCart();
