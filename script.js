@@ -58,10 +58,51 @@ const PRODUCTS = [
     price: 15000,
     image: "assets/tee-trust-in-lord.jpg",
     description: "Black heavyweight cotton tee. Front features a hand-drawn cross. Back features the CULTURE oval logo above 'TRUST IN THE LORD' in bold distressed type."
+  },
+  {
+    id: "sacrifice",
+    name: "SACRIFICE TEE",
+    price: 15000,
+    image: "assets/tee-sacrifice.jpg",
+    description: "White heavyweight cotton tee. Front features the CULTURE oval logo in navy blue. Back features 'SACRIFICE' above a cross flanked by two stars in black."
+  },
+  {
+    id: "love-the-sinner",
+    name: "LOVE THE SINNER, HATE THE SIN TEE",
+    price: 15000,
+    image: "assets/tee-love-the-sinner.jpg",
+    description: "White heavyweight cotton tee. Front features the CULTURE oval logo in navy blue. Back features 'Love The Sinner, Hate The Sin' in overlapping red block letters and black script."
+  },
+  {
+    id: "glory-highest",
+    name: "GLORY TO THE HIGHEST TEE",
+    price: 15000,
+    image: "assets/tee-glory-highest.jpg",
+    description: "White heavyweight cotton tee. Front features the CULTURE oval logo in royal blue. Back features 'Glory to the Highest' in bold serif type with a cursive script accent."
+  },
+  {
+    id: "savior-longsleeve",
+    name: "JESUS IS THE WORLD'S SAVIOR LONG SLEEVE",
+    price: 15000,
+    image: "assets/tee-savior-longsleeve.jpg",
+    description: "White heavyweight cotton long sleeve. Front features the CULTURE oval logo in navy blue. Back features 'Jesus Is The World's Savior' in deep red serif and script type, with the Savior wordmark below."
+  },
+  {
+    id: "child-of-god-longsleeve",
+    name: "CHILD OF GOD LONG SLEEVE",
+    price: 15000,
+    image: "assets/tee-child-of-god-longsleeve.jpg",
+    description: "Black heavyweight cotton long sleeve. Front features the CULTURE oval logo in white. Back features 'CHILD OF GOD' in bold distressed type flanked by crosses."
   }
 ];
 
 const SIZES = ["XS", "S", "M", "L", "XL"];
+
+// ---------- currency formatting ----------
+// All prices are stored as whole RWF numbers (no decimals — RWF doesn't use cents).
+function formatPrice(amount) {
+  return `RWF ${amount.toLocaleString("en-US")}`;
+}
 
 // ---------- toast notifications ----------
 
@@ -205,7 +246,7 @@ grid.innerHTML = PRODUCTS.map(p => `
     <h3>${p.name}</h3>
 
     <span class="price">
-      $${p.price.toFixed(2)} USD
+      ${formatPrice(p.price)}
     </span>
   </div>
 `).join("");
@@ -403,7 +444,7 @@ function renderProduct(product) {
       <h1>${product.name}</h1>
 
       <p class="price">
-        $${product.price.toFixed(2)} USD
+        ${formatPrice(product.price)}
       </p>
 
       <hr>
@@ -439,7 +480,7 @@ function renderProduct(product) {
         id="addCartBtn"
       >
         ADD TO CART —
-        $${product.price.toFixed(2)}
+        ${formatPrice(product.price)}
       </button>
 
       <div class="trust-badges">
@@ -479,7 +520,7 @@ function renderProduct(product) {
           </svg>
 
           <span>
-            Free Shipping $100+
+            Free Shipping RWF 100,000+
           </span>
 
         </div>
@@ -499,7 +540,7 @@ function renderProduct(product) {
           </svg>
 
           <span>
-            15000-Day Returns
+            30-Day Returns
           </span>
 
         </div>
@@ -579,7 +620,7 @@ function renderProduct(product) {
     setTimeout(() => {
 
       addBtn.textContent =
-        `ADD TO CART — $${product.price.toFixed(2)}`;
+        `ADD TO CART — ${formatPrice(product.price)}`;
 
       addBtn.classList.remove("added");
 
@@ -863,9 +904,7 @@ function renderCart() {
           <div>
 
             <p class="cart-item-price">
-              $${(
-                item.price * item.qty
-              ).toFixed(2)}
+              ${formatPrice(item.price * item.qty)}
             </p>
 
             <button
@@ -891,7 +930,7 @@ function renderCart() {
     );
 
   cartSubtotalEl.textContent =
-    `$${total.toFixed(2)}`;
+    formatPrice(total);
 }
 
 cartItemsEl.addEventListener(
