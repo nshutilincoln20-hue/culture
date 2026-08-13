@@ -323,6 +323,7 @@ main > section { animation: fade-in 0.25s ease; }
 /* ===== CHECKOUT ===== */
 #page-checkout { padding: 24px 20px 60px; max-width: 480px; margin: 0 auto; }
 .checkout-title { font-size: 30px; font-weight: 800; margin-bottom: 8px; }
+.checkout-sub { font-size: 13px; color: var(--gray); margin-bottom: 28px; line-height: 1.5; }
 .form-label {
   font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
   padding-bottom: 10px; border-bottom: 1px solid var(--gray-light); margin: 28px 0 16px;
@@ -342,6 +343,13 @@ main > section { animation: fade-in 0.25s ease; }
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .place-order-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.28); }
+
+.whatsapp-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: #25D366;
+}
+.whatsapp-btn:hover { background: #22bf5b; box-shadow: 0 8px 20px rgba(37,211,102,0.35); }
+.whatsapp-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* ===== FOOTER ===== */
 .footer { padding: 56px 32px 30px; border-top: 1px solid var(--gray-light); margin-top: 24px; }
