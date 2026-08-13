@@ -1011,13 +1011,16 @@ cartCheckoutBtn.addEventListener(
   }
 );
 
-// ---------- PAYPACK CHECKOUT ----------
+// ---------- WHATSAPP CHECKOUT ----------
+// Replace with YOUR WhatsApp Business number in international format,
+// digits only, no + or leading 0 (e.g. Rwanda 078 123 4567 -> "250781234567").
+const WHATSAPP_NUMBER = "0782038943";
 
 document
   .getElementById("placeOrderBtn")
   .addEventListener(
     "click",
-    async e => {
+    e => {
 
       e.preventDefault();
 
@@ -1063,102 +1066,98 @@ document
         return;
       }
 
-      const emailInput =
-        pageCheckout.querySelector(
-          'input[type="email"]'
-        );
+      const name =
+        document
+          .getElementById("checkoutName")
+          .value.trim();
 
-      if (!emailInput) {
+      const address =
+        document
+          .getElementById("checkoutAddress")
+          .value.trim();
 
-        showToast(
-          "Email field is missing",
-          "error"
-        );
+      const phone =
+        document
+          .getElementById("checkoutPhone")
+          .value.trim();
 
-        return;
-      }
+      const total = cart.reduce(
+        (sum, item) => sum + item.price * item.qty,
+        0
+      );
 
-      const email =
-        emailInput.value.trim();
+      const orderLines = cart
+        .map((item, i) =>
+          `${i + 1}. ${item.name} (Size: ${item.size}) x${item.qty} — ${formatPrice(item.price * item.qty)}`
+        )
+        .join("\n");
 
-      const items =
-        cart.map(item => ({
-          name:
-            `${item.name} - Size ${item.size}`,
-          price: item.price,
-          quantity: item.qty
-        }));
+      const message =
+`Hello __CULTURE.__ 👋 I'd like to place an order:
 
-      const button =
-        document.getElementById(
-          "placeOrderBtn"
-        );
+${orderLines}
 
-      button.disabled = true;
+Subtotal: ${formatPrice(total)}
 
-      button.textContent =
-        "CONNECTING TO PAYMENT...";
+*Customer Details*
+Name: ${name}
+Delivery Address: ${address}
+Phone: ${phone}
 
-      try {
+Thank you!`;
 
-        const response =
-          await fetch(
-            "https://culture-mu.vercel.app/api/create-checkout",
-            {
-              method: "POST",
+      const whatsappUrl =
+        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
-              headers: {
-                "Content-Type":
-                  "application/json"
-              },
+      window.open(whatsappUrl, "_blank");
 
-              body: JSON.stringify({
-                email,
-                items
-              })
-            }
-          );
+      renderConfirmation();
 
-        const data =
-          await response.json();
+      cart = [];
 
-        if (
-          !response.ok ||
-          !data.payment_link
-        ) {
+      renderCart();
 
-          console.error(
-            "Paypack error:",
-            data
-          );
-
-          throw new Error(
-            "Unable to create payment checkout"
-          );
-        }
-
-        window.location.href =
-          data.payment_link;
-
-      } catch (error) {
-
-        console.error(
-          "Checkout error:",
-          error
-        );
-
-        showToast(
-          "We couldn't start the payment. Please try again.",
-          "error"
-        );
-
-        button.disabled = false;
-
-        button.textContent =
-          "PLACE ORDER";
-      }
+      showPage(pageConfirmation);
     }
   );
+
+function renderConfirmation() {
+
+  const orderRef =
+    "CUL-" + Math.floor(100000 + Math.random() * 900000);
+
+  const orderNumberEl =
+    document.getElementById("confirmOrderNumber");
+
+  if (orderNumberEl) {
+    orderNumberEl.textContent = `Order ref: ${orderRef}`;
+  }
+
+  const summaryEl =
+    document.getElementById("confirmSummary");
+
+  if (summaryEl) {
+
+    const total = cart.reduce(
+      (sum, item) => sum + item.price * item.qty,
+      0
+    );
+
+    summaryEl.innerHTML =
+      cart.map(item => `
+        <div class="confirmation-item">
+          <span>${item.name} (${item.size}) × ${item.qty}</span>
+          <span>${formatPrice(item.price * item.qty)}</span>
+        </div>
+      `).join("") +
+      `
+        <div class="confirmation-total">
+          <span>Total</span>
+          <span>${formatPrice(total)}</span>
+        </div>
+      `;
+  }
+}
 
 // ---------- newsletter ----------
 
