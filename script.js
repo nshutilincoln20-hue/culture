@@ -721,8 +721,30 @@ document
 });
 
 // ---------- cart state ----------
+// Persisted to localStorage so a customer's cart survives a page refresh
+// or closing the tab and coming back later.
 
-let cart = [];
+const CART_STORAGE_KEY = "culture_cart_v1";
+
+function loadCartFromStorage() {
+  try {
+    const saved = localStorage.getItem(CART_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch (err) {
+    console.error("Could not read saved cart:", err);
+    return [];
+  }
+}
+
+function saveCartToStorage() {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  } catch (err) {
+    console.error("Could not save cart:", err);
+  }
+}
+
+let cart = loadCartFromStorage();
 
 const cartDrawer =
   document.getElementById("cartDrawer");
@@ -819,6 +841,8 @@ function removeItem(index) {
 }
 
 function renderCart() {
+
+  saveCartToStorage();
 
   const totalQty =
     cart.reduce(
@@ -1016,6 +1040,29 @@ cartCheckoutBtn.addEventListener(
 // digits only, no + or leading 0 (e.g. Rwanda 078 123 4567 -> "250781234567").
 const WHATSAPP_NUMBER = "250782038943";
 
+// Replace with YOUR deployed Google Apps Script URL (see order-logger/Code.gs
+// for setup instructions). This logs every order attempt to a Google Sheet
+// so you have a record beyond just the WhatsApp chat.
+const ORDER_LOG_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+
+function logOrderToSheet(orderData) {
+  if (!ORDER_LOG_URL || ORDER_LOG_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+    // Order logging isn't set up yet — skip silently rather than break checkout.
+    return;
+  }
+  // "no-cors" mode: we can't read the response, but that's fine — we only
+  // need the row to be written, and this avoids CORS setup on the Apps
+  // Script side. Fire-and-forget; never blocks or breaks the WhatsApp flow.
+  fetch(ORDER_LOG_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(orderData)
+  }).catch(err => {
+    console.error("Order log failed (order still proceeds normally):", err);
+  });
+}
+
 document
   .getElementById("placeOrderBtn")
   .addEventListener(
@@ -1106,10 +1153,43 @@ Phone: ${phone}
 
 Thank you!`;
 
-      const whatsappUrl =
-        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+      // Sanity check: the number must be digits only and a placeholder
+      // must never actually be used to open a broken link.
+      const digitsOnly = WHATSAPP_NUMBER.replace(/\D/g, "");
 
-      window.open(whatsappUrl, "_blank");
+      if (!digitsOnly || digitsOnly.length < 10) {
+        showToast(
+          "WhatsApp number isn't set up yet — contact the site owner.",
+          "error"
+        );
+        console.error(
+          "WHATSAPP_NUMBER is invalid. Update it near the top of the WHATSAPP CHECKOUT section in script.js."
+        );
+        return;
+      }
+
+      const whatsappUrl =
+        `https://wa.me/${digitsOnly}?text=${encodeURIComponent(message)}`;
+
+      logOrderToSheet({
+        name,
+        address,
+        phone,
+        items: cart
+          .map(item => `${item.name} (${item.size}) x${item.qty}`)
+          .join(", "),
+        total: total
+      });
+
+      // window.open can be silently blocked by popup blockers (especially
+      // Safari) if the browser doesn't consider this a "direct" user click.
+      // If that happens, fall back to navigating the current tab instead —
+      // that always works since it's not a popup.
+      const newTab = window.open(whatsappUrl, "_blank");
+
+      if (!newTab || newTab.closed || typeof newTab.closed === "undefined") {
+        window.location.href = whatsappUrl;
+      }
 
       renderConfirmation();
 
