@@ -1038,12 +1038,12 @@ cartCheckoutBtn.addEventListener(
 // ---------- WHATSAPP CHECKOUT ----------
 // Replace with YOUR WhatsApp Business number in international format,
 // digits only, no + or leading 0 (e.g. Rwanda 078 123 4567 -> "250781234567").
-const WHATSAPP_NUMBER = "250782038943";
+const WHATSAPP_NUMBER = "250788000000";
 
 // Replace with YOUR deployed Google Apps Script URL (see order-logger/Code.gs
 // for setup instructions). This logs every order attempt to a Google Sheet
 // so you have a record beyond just the WhatsApp chat.
-const ORDER_LOG_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+const ORDER_LOG_URL = "https://script.google.com/macros/s/AKfycbyG1yNWPVS1n4TlTjCO9SVuUhCq3we-S-2eHqQ0cpzA-1eWKKXVQlmAxkXFYXcCdrrA/exec";
 
 function logOrderToSheet(orderData) {
   if (!ORDER_LOG_URL || ORDER_LOG_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
@@ -1157,13 +1157,13 @@ Thank you!`;
       // must never actually be used to open a broken link.
       const digitsOnly = WHATSAPP_NUMBER.replace(/\D/g, "");
 
-      if (!digitsOnly || digitsOnly.length < 10) {
+      if (!digitsOnly || WHATSAPP_NUMBER === "250788000000" || digitsOnly.length < 10) {
         showToast(
           "WhatsApp number isn't set up yet — contact the site owner.",
           "error"
         );
         console.error(
-          "WHATSAPP_NUMBER is invalid. Update it near the top of the WHATSAPP CHECKOUT section in script.js."
+          "WHATSAPP_NUMBER is still a placeholder or invalid. Update it near the top of the WHATSAPP CHECKOUT section in script.js."
         );
         return;
       }
