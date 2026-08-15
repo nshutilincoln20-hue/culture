@@ -1038,7 +1038,7 @@ cartCheckoutBtn.addEventListener(
 // ---------- WHATSAPP CHECKOUT ----------
 // Replace with YOUR WhatsApp Business number in international format,
 // digits only, no + or leading 0 (e.g. Rwanda 078 123 4567 -> "250781234567").
-const WHATSAPP_NUMBER = "250788000000";
+const WHATSAPP_NUMBER = "250782038943";
 
 // Replace with YOUR deployed Google Apps Script URL (see order-logger/Code.gs
 // for setup instructions). This logs every order attempt to a Google Sheet
